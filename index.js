@@ -2,50 +2,63 @@ const fs = require("fs");
 const readline = require("readline");
 const svg = require("svg");
 
-function createLogo(text, textColor, shape, shapeColor) {
-  const width = 300;
-  const height = 200;
-
-  const canvas = svg(width, height);
-  canvas.rect(0, 0, width, height, { fill: shapeColor });
-
-  let shapeElement;
-  switch (shape) {
-    case "circle":
-      shapeElement = canvas.circle(width / 2, height / 2, 50, {
-        fill: textColor,
-      });
-      break;
-    case "triangle":
-      shapeElement = canvas.polygon(
-        [
-          [width / 2, height / 2 - 50],
-          [width / 2 - 50, height / 2 + 50],
-          [width / 2 + 50, height / 2 + 50],
-        ],
-        { fill: textColor }
-      );
-      break;
-    case "square":
-      shapeElement = canvas.rect(width / 2 - 50, height / 2 - 50, 100, 100, {
-        fill: textColor,
-      });
-      break;
-    default:
-      console.log("Invalid shape");
-      return;
+class LogoGenerator {
+  constructor() {
+    this.width = 300;
+    this.height = 200;
+    this.canvas = svg(this.width, this.height);
   }
 
-  shapeElement.text(text, {
-    x: width / 2,
-    y: height / 2 + 10,
-    fill: "white",
-    "text-anchor": "middle",
-  });
+  addBackground(shapeColor) {
+    this.canvas.rect(0, 0, this.width, this.height, { fill: shapeColor });
+  }
 
-  const logoSvg = canvas.toSVG();
-  fs.writeFileSync("logo.svg", logoSvg);
-  console.log("Generated logo.svg");
+  addText(text, textColor) {
+    this.canvas.text(text, {
+      x: this.width / 2,
+      y: this.height / 2 + 10,
+      fill: textColor,
+      "text-anchor": "middle",
+    });
+  }
+
+  addShape(shape, textColor) {
+    switch (shape) {
+      case "circle":
+        this.canvas.circle(this.width / 2, this.height / 2, 50, {
+          fill: textColor,
+        });
+        break;
+      case "triangle":
+        this.canvas.polygon(
+          [
+            [this.width / 2, this.height / 2 - 50],
+            [this.width / 2 - 50, this.height / 2 + 50],
+            [this.width / 2 + 50, this.height / 2 + 50],
+          ],
+          { fill: textColor }
+        );
+        break;
+      case "square":
+        this.canvas.rect(this.width / 2 - 50, this.height / 2 - 50, 100, 100, {
+          fill: textColor,
+        });
+        break;
+      default:
+        console.log("Invalid shape");
+        return;
+    }
+  }
+
+  generateLogo(text, textColor, shape, shapeColor) {
+    this.addBackground(shapeColor);
+    this.addShape(shape, textColor);
+    this.addText(text.slice(0, 3), "white");
+
+    const logoSvg = this.canvas.toSVG();
+    fs.writeFileSync("logo.svg", logoSvg);
+    console.log("Generated logo.svg");
+  }
 }
 
 function promptUser(question) {
@@ -72,7 +85,8 @@ async function main() {
     "Enter the shape color keyword or hexadecimal number: "
   );
 
-  createLogo(text.slice(0, 3), textColor, shape, shapeColor);
+  const logoGenerator = new LogoGenerator();
+  logoGenerator.generateLogo(text, textColor, shape, shapeColor);
 }
 
 main();
