@@ -18,6 +18,9 @@
   },
   "homepage": "https://github.com/jedichang99/SVG_Logo_Maker#readme",
   "dependencies": {
-    "inquirer": "^8.2.4"
+    "inquirer": "^8.2.5"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0"
   }
 }

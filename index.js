@@ -1,92 +1,89 @@
 const fs = require("fs");
-const readline = require("readline");
-const svg = require("svg");
+const inquirer = require("inquirer");
+const { exec } = require("child_process");
 
 class LogoGenerator {
   constructor() {
     this.width = 300;
     this.height = 200;
-    this.canvas = svg(this.width, this.height);
+    this.svgContent = "";
   }
 
-  addBackground(shapeColor) {
-    this.canvas.rect(0, 0, this.width, this.height, { fill: shapeColor });
+  generateBackground(shapeColor) {
+    this.svgContent += `<rect width="${this.width}" height="${this.height}" fill="${shapeColor}" />`;
   }
 
-  addText(text, textColor) {
-    this.canvas.text(text, {
-      x: this.width / 2,
-      y: this.height / 2 + 10,
-      fill: textColor,
-      "text-anchor": "middle",
-    });
+  generateText(text, textColor) {
+    this.svgContent += `<text x="${this.width / 2}" y="${
+      this.height / 2 + 10
+    }" fill="${textColor}" text-anchor="middle">${text}</text>`;
   }
 
-  addShape(shape, textColor) {
+  generateShape(shape, textColor) {
     switch (shape) {
       case "circle":
-        this.canvas.circle(this.width / 2, this.height / 2, 50, {
-          fill: textColor,
-        });
+        this.svgContent += `<circle cx="${this.width / 2}" cy="${
+          this.height / 2
+        }" r="50" fill="${textColor}" />`;
         break;
       case "triangle":
-        this.canvas.polygon(
-          [
-            [this.width / 2, this.height / 2 - 50],
-            [this.width / 2 - 50, this.height / 2 + 50],
-            [this.width / 2 + 50, this.height / 2 + 50],
-          ],
-          { fill: textColor }
-        );
+        this.svgContent += `<polygon points="${this.width / 2},${
+          this.height / 2 - 50
+        } ${this.width / 2 - 50},${this.height / 2 + 50} ${
+          this.width / 2 + 50
+        },${this.height / 2 + 50}" fill="${textColor}" />`;
         break;
       case "square":
-        this.canvas.rect(this.width / 2 - 50, this.height / 2 - 50, 100, 100, {
-          fill: textColor,
-        });
+        this.svgContent += `<rect x="${this.width / 2 - 50}" y="${
+          this.height / 2 - 50
+        }" width="100" height="100" fill="${textColor}" />`;
         break;
       default:
         console.log("Invalid shape");
-        return;
     }
   }
 
   generateLogo(text, textColor, shape, shapeColor) {
-    this.addBackground(shapeColor);
-    this.addShape(shape, textColor);
-    this.addText(text.slice(0, 3), "white");
+    this.generateBackground(shapeColor);
+    this.generateShape(shape, textColor);
+    this.generateText(text.slice(0, 3), "white");
 
-    const logoSvg = this.canvas.toSVG();
-    fs.writeFileSync("logo.svg", logoSvg);
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${this.width}" height="${this.height}">${this.svgContent}</svg>`;
+    fs.writeFileSync("logo.svg", svgContent);
     console.log("Generated logo.svg");
+
+    const openCommand = process.platform === "win32" ? "start" : "open";
+    exec(`${openCommand} logo.svg`);
   }
 }
 
-function promptUser(question) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer);
-    });
-  });
+async function promptUser(questions) {
+  return await inquirer.prompt(questions);
 }
 
+const questions = [
+  { name: "text", message: "Enter up to three characters: " },
+  {
+    name: "textColor",
+    message: "Enter the text color keyword or hexadecimal number: ",
+  },
+  { name: "shape", message: "Choose a shape (circle, triangle, square): " },
+  {
+    name: "shapeColor",
+    message: "Enter the shape color keyword or hexadecimal number: ",
+  },
+];
+
 async function main() {
-  const text = await promptUser("Enter up to three characters: ");
-  const textColor = await promptUser(
-    "Enter the text color keyword or hexadecimal number: "
-  );
-  const shape = await promptUser("Choose a shape (circle, triangle, square): ");
-  const shapeColor = await promptUser(
-    "Enter the shape color keyword or hexadecimal number: "
-  );
+  const answers = await promptUser(questions);
 
   const logoGenerator = new LogoGenerator();
-  logoGenerator.generateLogo(text, textColor, shape, shapeColor);
+  logoGenerator.generateLogo(
+    answers.text,
+    answers.textColor,
+    answers.shape,
+    answers.shapeColor
+  );
 }
 
 main();
