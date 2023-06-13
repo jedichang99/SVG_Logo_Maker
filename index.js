@@ -1,6 +1,5 @@
 const fs = require("fs");
 const inquirer = require("inquirer");
-const { exec } = require("child_process");
 
 class LogoGenerator {
   constructor() {
@@ -24,19 +23,21 @@ class LogoGenerator {
       case "circle":
         this.svgContent += `<circle cx="${this.width / 2}" cy="${
           this.height / 2
-        }" r="50" fill="${textColor}" />`;
+        }" r="50" fill="${textColor}" stroke="black" stroke-width="5" />`;
         break;
       case "triangle":
         this.svgContent += `<polygon points="${this.width / 2},${
           this.height / 2 - 50
         } ${this.width / 2 - 50},${this.height / 2 + 50} ${
           this.width / 2 + 50
-        },${this.height / 2 + 50}" fill="${textColor}" />`;
+        },${
+          this.height / 2 + 50
+        }" fill="${textColor}" stroke="black" stroke-width="5" />`;
         break;
       case "square":
         this.svgContent += `<rect x="${this.width / 2 - 50}" y="${
           this.height / 2 - 50
-        }" width="100" height="100" fill="${textColor}" />`;
+        }" width="100" height="100" fill="${textColor}" stroke="black" stroke-width="5" />`;
         break;
       default:
         console.log("Invalid shape");
@@ -51,9 +52,6 @@ class LogoGenerator {
     const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${this.width}" height="${this.height}">${this.svgContent}</svg>`;
     fs.writeFileSync("logo.svg", svgContent);
     console.log("Generated logo.svg");
-
-    const openCommand = process.platform === "win32" ? "start" : "open";
-    exec(`${openCommand} logo.svg`);
   }
 }
 
